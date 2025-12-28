@@ -69,6 +69,9 @@ func registerAPIRoutes(e *echo.Echo, openAIClient *openai.Client, maxChunkingSiz
 		})
 	}
 
+	// Health check endpoint for load balancers
+	e.GET("/health", healthCheck())
+
 	e.POST("/api/collections", createCollection(collections, openAIClient, embeddingModel, maxChunkingSize))
 	e.POST("/api/collections/:name/upload", uploadFile(collections, fileAssets))
 	e.GET("/api/collections", listCollections)
@@ -79,6 +82,15 @@ func registerAPIRoutes(e *echo.Echo, openAIClient *openai.Client, maxChunkingSiz
 	e.POST("/api/collections/:name/sources", registerExternalSource(collections))
 	e.DELETE("/api/collections/:name/sources", removeExternalSource(collections))
 	e.GET("/api/collections/:name/sources", listSources(collections))
+}
+
+// healthCheck returns a simple health status
+func healthCheck() func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{
+			"status": "healthy",
+		})
+	}
 }
 
 // createCollection handles creating a new collection
